@@ -42,6 +42,28 @@ namespace Mamp.Controller
  
             return Ok(response);
         }
+        
+        [HttpPost("refresh")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            // Basic validation before hitting the service
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                return BadRequest(new { Success = false, Message = "Refresh token is required." });
+            }
+
+            var response = await _authService.RefreshTokenAsync(request.RefreshToken);
+
+            if (!response.Success)
+            {
+                // Returning 401 Unauthorized here is crucial. 
+                // When the frontend's Axios/Fetch interceptor sees a 401 from the /refresh endpoint, 
+                // it knows the session is completely dead and it must redirect the user back to the login screen.
+                return Unauthorized(response); 
+            }
+
+            return Ok(response);
+        }
     }
 }
 
