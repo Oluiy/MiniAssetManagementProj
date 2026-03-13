@@ -117,7 +117,7 @@ public class AssetManagement : IAssetManagement
         return response;
     }
 
-    public async Task<ServiceResponse<List<AssetResponse>>> GetAllAsset()
+    public async Task<ServiceResponse<List<AssetResponse>>> GetAllAsset(Guid userId)
     {
         var response = new ServiceResponse<List<AssetResponse>>();
 
@@ -126,6 +126,7 @@ public class AssetManagement : IAssetManagement
             // AsNoTracking() improves performance for read-only queries
             var assets = await _db.Asset
                 .AsNoTracking()
+                .Where(a => a.UserId == userId)
                 .Select(a => new AssetResponse
                 {
                     Id = a.Id,
@@ -150,7 +151,7 @@ public class AssetManagement : IAssetManagement
         return response;
     }
 
-    public async Task<ServiceResponse<AssetResponse>> AssetDetails(Guid assetId)
+    public async Task<ServiceResponse<AssetResponse>> AssetDetails(Guid assetId, Guid userId)
     {
         var response = new ServiceResponse<AssetResponse>();
 
@@ -158,7 +159,7 @@ public class AssetManagement : IAssetManagement
         {
             var asset = await _db.Asset
                 .AsNoTracking()
-                .Where(a => a.Id == assetId)
+                .Where(a => a.Id == assetId && a.UserId == userId)
                 .Select(a => new AssetResponse
                 {
                     Id = a.Id,

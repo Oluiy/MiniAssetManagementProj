@@ -24,7 +24,8 @@ public class MaintenanceTaskService : IMaintenanceTask // Renamed slightly to fo
 
         try
         {
-            var assetExists = await _db.Asset.AnyAsync(a => a.Id == request.AssetId);
+            var assetExists = await _db.Asset
+                .AnyAsync(a => a.Id == request.AssetId && a.UserId == userId);
             if (!assetExists)
             {
                 response.Success = false;
@@ -137,7 +138,7 @@ public class MaintenanceTaskService : IMaintenanceTask // Renamed slightly to fo
         return response;
     }
 
-    public async Task<ServiceResponse<MaintenanceTaskResponse>> GetTaskDetails(Guid taskId)
+    public async Task<ServiceResponse<MaintenanceTaskResponse>> GetTaskDetails(Guid taskId, Guid userId)
     {
         var response = new ServiceResponse<MaintenanceTaskResponse>();
 
@@ -145,7 +146,7 @@ public class MaintenanceTaskService : IMaintenanceTask // Renamed slightly to fo
         {
             var task = await _db.MaintenanceTask
                 .AsNoTracking()
-                .Where(t => t.Id == taskId)
+                .Where(t => t.Id == taskId && t.UserId == userId)
                 .Select(t => new MaintenanceTaskResponse
                 {
                     Id = t.Id,
@@ -178,35 +179,35 @@ public class MaintenanceTaskService : IMaintenanceTask // Renamed slightly to fo
         return response;
     }
 
-    public async Task<ServiceResponse<List<MaintenanceTaskResponse>>> GetAllTask()
+    public async Task<ServiceResponse<List<MaintenanceTaskResponse>>> GetAllTask(Guid userId)
     {
         var response = new ServiceResponse<List<MaintenanceTaskResponse>>();
 
         try
         {
-            // AsNoTracking() improves performance for read-only queries
-            var assets = await _db.MaintenanceTask
+            var tasks = await _db.MaintenanceTask
                 .AsNoTracking()
-                .Select(a => new MaintenanceTaskResponse
+                .Where(t => t.UserId == userId)
+                .Select(t => new MaintenanceTaskResponse
                 {
-                    Id = a.Id,
-                    Title = a.Title,
-                    Description = a.Description,
-                    AssetId = a.AssetId,
-                    Priority = a.Priority.ToString(),
-                    Status = a.Status.ToString(),
-                    DueDate = a.DueDate
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    AssetId = t.AssetId,
+                    Priority = t.Priority.ToString(),
+                    Status = t.Status.ToString(),
+                    DueDate = t.DueDate
                 })
                 .ToListAsync();
 
-            response.Data = assets;
+            response.Data = tasks;
             response.Success = true;
-            response.Message = "Assets retrieved successfully.";
+            response.Message = "Tasks retrieved successfully.";
         }
         catch (Exception ex)
         {
             response.Success = false;
-            response.Message = $"Error retrieving assets: {ex.Message}";
+            response.Message = $"Error retrieving tasks: {ex.Message}";
         }
 
         return response;

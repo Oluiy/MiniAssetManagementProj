@@ -77,7 +77,8 @@ namespace Mamp.Controller
         [HttpGet]
         public async Task<ActionResult<ServiceResponse<List<AssetResponse>>>> GetAllAssets()
         {
-            var response = await _assetService.GetAllAsset();
+            var userId = GetUserId();
+            var response = await _assetService.GetAllAsset(userId);
 
             if (!response.Success)
             {
@@ -95,7 +96,8 @@ namespace Mamp.Controller
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<ServiceResponse<AssetResponse>>> GetAssetDetails(Guid id)
         {
-            var response = await _assetService.AssetDetails(id);
+            var userId = GetUserId();
+            var response = await _assetService.AssetDetails(id, userId);
 
             if (!response.Success)
             {
@@ -104,7 +106,7 @@ namespace Mamp.Controller
 
             return Ok(response);
         }
-        
+
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult> DeleteAsset(Guid id)
         {
@@ -120,4 +122,3 @@ namespace Mamp.Controller
         }
     }
 }
-

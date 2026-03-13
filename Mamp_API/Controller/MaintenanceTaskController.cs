@@ -51,7 +51,8 @@ public class MaintenanceTaskController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult> GetTaskDetails(Guid id)
     {
-        var response = await _taskService.GetTaskDetails(id);
+        var userId = GetUserId();
+        var response = await _taskService.GetTaskDetails(id, userId);
 
         if (!response.Success)
         {
@@ -76,7 +77,12 @@ public class MaintenanceTaskController : ControllerBase
         return Ok(response);
     }
 
-    // PATCH api/maintenancetask/{id}/status
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPatch("{id:guid}/status")]
     public async Task<ActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusDto request)
     {
@@ -94,7 +100,8 @@ public class MaintenanceTaskController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ServiceResponse<MaintenanceTaskResponse>>> GetAllAssets()
     {
-        var response = await _taskService.GetAllTask();
+        var userId = GetUserId();
+        var response = await _taskService.GetAllTask(userId);
 
         if (!response.Success)
         {
