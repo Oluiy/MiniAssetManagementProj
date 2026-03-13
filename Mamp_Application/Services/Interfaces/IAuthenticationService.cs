@@ -9,6 +9,7 @@ namespace Mamp_Application.Services.Interfaces
     {
         Task<ServiceResponse<SignupResponse>> RegisterUserAsync(SignupRequest signupRequest);
         Task<ServiceResponse<SignupResponse>> LoginAsync(LoginRequest loginRequest);
+        Task<ServiceResponse<TokenResponse>> RefreshTokenAsync(string oldRefreshToken);
     }
 }
 

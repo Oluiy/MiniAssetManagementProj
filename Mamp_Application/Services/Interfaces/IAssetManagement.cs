@@ -10,6 +10,7 @@ namespace Mamp_Application.Services.Interfaces
         Task<ServiceResponse<AssetResponse>> EditAsset(AssetRequest assetRequest, Guid userId, Guid assetId);
         Task<ServiceResponse<List<AssetResponse>>> GetAllAsset();
         Task<ServiceResponse<AssetResponse>> AssetDetails(Guid assetId);
+        Task<ServiceResponse> DeleteAsset(Guid assetId, Guid userId);
     }
 }
 

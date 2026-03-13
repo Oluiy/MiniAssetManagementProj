@@ -177,4 +177,77 @@ public class MaintenanceTaskService : IMaintenanceTask // Renamed slightly to fo
 
         return response;
     }
+
+    public async Task<ServiceResponse<List<MaintenanceTaskResponse>>> GetAllTask()
+    {
+        var response = new ServiceResponse<List<MaintenanceTaskResponse>>();
+
+        try
+        {
+            // AsNoTracking() improves performance for read-only queries
+            var assets = await _db.MaintenanceTask
+                .AsNoTracking()
+                .Select(a => new MaintenanceTaskResponse
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Description = a.Description,
+                    AssetId = a.AssetId,
+                    Priority = a.Priority.ToString(),
+                    Status = a.Status.ToString(),
+                    DueDate = a.DueDate
+                })
+                .ToListAsync();
+
+            response.Data = assets;
+            response.Success = true;
+            response.Message = "Assets retrieved successfully.";
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            response.Message = $"Error retrieving assets: {ex.Message}";
+        }
+
+        return response;
+    }
+    
+    public async Task<ServiceResponse> DeleteTask(Guid taskId, Guid userId)
+    {
+        var response = new ServiceResponse();
+
+        try
+        {
+            var task = await _db.MaintenanceTask.FirstOrDefaultAsync(t => t.Id == taskId);
+
+            if (task == null)
+            {
+                response.Success = false;
+                response.Message = "Task not found.";
+                return response;
+            }
+
+            // Security Check: Only the owner can delete the task
+            if (task.UserId != userId)
+            {
+                response.Success = false;
+                response.Message = "You do not have permission to delete this task.";
+                return response;
+            }
+
+            _db.MaintenanceTask.Remove(task);
+            await _db.SaveChangesAsync();
+
+            response.Success = true;
+            response.Message = "Maintenance task deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            var actualError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+            response.Message = $"Error deleting task: {actualError}";
+        }
+
+        return response;
+    }
 }
