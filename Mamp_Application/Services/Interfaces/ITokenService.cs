@@ -1,7 +1,10 @@
+using System.Security.Claims;
+
 namespace Mamp_Application.Services.Interfaces;
 
 public interface ITokenService
 {
-    public string GenerateToken(Guid userId, string? role, string email);
-    public string GenerateRefreshToken();
+    string GenerateToken(Guid userId, string? role, string email);
+    string GenerateRefreshToken(Guid userId);
+    ClaimsPrincipal? GetPrincipalFromToken(string token); // Added to validate tokens without a DB
 }

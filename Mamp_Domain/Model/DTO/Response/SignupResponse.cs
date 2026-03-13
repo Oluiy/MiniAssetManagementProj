@@ -11,8 +11,7 @@ public record SignupResponse
 public record TokenResponse
 {
     public string AccessToken { get; init; }
-    public string AccessTokenExpiresAtUtc { get; init; }
-        
+    public DateTime AccessTokenExpiresAtUtc { get; init; }
     public string refreshToken { get; init; }
-    public string refreshTokenExpiresAt { get; init; }
+    public DateTime refreshTokenExpiresAt { get; init; }
 }

@@ -189,4 +189,43 @@ public class AssetManagement : IAssetManagement
 
         return response;
     }
+    
+    public async Task<ServiceResponse> DeleteAsset(Guid assetId, Guid userId)
+    {
+        var response = new ServiceResponse();
+
+        try
+        {
+            var asset = await _db.Asset.FirstOrDefaultAsync(a => a.Id == assetId);
+
+            if (asset == null)
+            {
+                response.Success = false;
+                response.Message = "Asset not found.";
+                return response;
+            }
+
+            // Security Check: Only the owner can delete the asset
+            if (asset.UserId != userId)
+            {
+                response.Success = false;
+                response.Message = "You do not have permission to delete this asset.";
+                return response;
+            }
+
+            _db.Asset.Remove(asset);
+            await _db.SaveChangesAsync();
+
+            response.Success = true;
+            response.Message = "Asset and all associated tasks were deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            var actualError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+            response.Message = $"Error deleting asset: {actualError}";
+        }
+
+        return response;
+    }
 }

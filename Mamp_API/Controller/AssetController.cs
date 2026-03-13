@@ -11,98 +11,113 @@ using Mamp_Application.Services.Interfaces; // Assuming your interface lives her
 namespace Mamp.Controller
 {
     [ApiController]
-[Route("api/[controller]")]
-[Authorize] // This ensures ONLY logged-in users with a valid token can hit these endpoints
-public class AssetController : ControllerBase
-{
-    private readonly IAssetManagement _assetService;
-/// <summary>
-/// 
-/// </summary>
-/// <param name="assetService"></param>
-    public AssetController(IAssetManagement assetService)
+    [Route("api/[controller]")]
+    [Authorize] // This ensures ONLY logged-in users with a valid token can hit these endpoints
+    public class AssetController : ControllerBase
     {
-        _assetService = assetService;
-    }
+        private readonly IAssetManagement _assetService;
 
-    // Helper method to securely extract the UserId from the JWT token
-    private Guid GetUserId()
-    {
-        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub) 
-                           ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetService"></param>
+        public AssetController(IAssetManagement assetService)
         {
-            throw new UnauthorizedAccessException("Invalid user token.");
-        }
-    
-        return userId;
-    }
-
-    
-    [HttpPost]
-    public async Task<ActionResult<ServiceResponse<AssetResponse>>> CreateAsset([FromBody] AssetRequest request)
-    {
-        var userId = GetUserId();
-        var response = await _assetService.CreateAsset(request, userId);
-
-        if (!response.Success)
-        {
-            return BadRequest(response);
+            _assetService = assetService;
         }
 
-        // Returns a 201 Created status code along with the new asset data
-        return CreatedAtAction(nameof(GetAssetDetails), new { id = response.Data.Id }, response);
-    }
-
-    // In REST APIs, we usually put the ID in the URL for an update: PUT api/asset/{id}
-    [HttpPut("{id:guid}")] // The ID comes from the URL
-    public async Task<ActionResult<ServiceResponse>> EditAsset(Guid id, [FromBody] AssetRequest request)
-    {
-        // 1. Securely get the logged-in user's ID from their JWT Token
-        var userId = GetUserId(); 
-
-        // 2. Pass the ID from the URL and the data from the Body to your service
-        var response = await _assetService.EditAsset(request, userId, id);
-
-        if (!response.Success)
+        // Helper method to securely extract the UserId from the JWT token
+        private Guid GetUserId()
         {
-            return BadRequest(response); 
+            var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                               ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+            {
+                throw new UnauthorizedAccessException("Invalid user token.");
+            }
+
+            return userId;
         }
 
-        return Ok(response);
-    }
 
-    [HttpGet]
-    public async Task<ActionResult<ServiceResponse<List<AssetResponse>>>> GetAllAssets()
-    {
-        var response = await _assetService.GetAllAsset();
-
-        if (!response.Success)
+        [HttpPost]
+        public async Task<ActionResult<ServiceResponse<AssetResponse>>> CreateAsset([FromBody] AssetRequest request)
         {
-            return BadRequest(response);
+            var userId = GetUserId();
+            var response = await _assetService.CreateAsset(request, userId);
+
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+
+            // Returns a 201 Created status code along with the new asset data
+            return CreatedAtAction(nameof(GetAssetDetails), new { id = response.Data.Id }, response);
         }
 
-        return Ok(response);
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ServiceResponse<AssetResponse>>> GetAssetDetails(Guid id)
-    {
-        var response = await _assetService.AssetDetails(id);
-
-        if (!response.Success)
+        // In REST APIs, we usually put the ID in the URL for an update: PUT api/asset/{id}
+        [HttpPut("{id:guid}")] // The ID comes from the URL
+        public async Task<ActionResult<ServiceResponse>> EditAsset(Guid id, [FromBody] AssetRequest request)
         {
-            return NotFound(response); // Standard 404 if the asset doesn't exist
+            // 1. Securely get the logged-in user's ID from their JWT Token
+            var userId = GetUserId();
+
+            // 2. Pass the ID from the URL and the data from the Body to your service
+            var response = await _assetService.EditAsset(request, userId, id);
+
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
         }
 
-        return Ok(response);
+        [HttpGet]
+        public async Task<ActionResult<ServiceResponse<List<AssetResponse>>>> GetAllAssets()
+        {
+            var response = await _assetService.GetAllAsset();
+
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<ServiceResponse<AssetResponse>>> GetAssetDetails(Guid id)
+        {
+            var response = await _assetService.AssetDetails(id);
+
+            if (!response.Success)
+            {
+                return NotFound(response); // Standard 404 if the asset doesn't exist
+            }
+
+            return Ok(response);
+        }
+        
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult> DeleteAsset(Guid id)
+        {
+            var userId = GetUserId();
+            var response = await _assetService.DeleteAsset(id, userId);
+
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
     }
-}
 }
 

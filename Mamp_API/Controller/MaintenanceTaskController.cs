@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Mamp_Domain.Model.DTO.Request;
 using Mamp_Application.Services.Interfaces;
+using Mamp_Domain.Model.DTO;
 
 namespace Mamp.Controller;
 
@@ -89,4 +90,32 @@ public class MaintenanceTaskController : ControllerBase
 
         return Ok(response);
     }
+    
+    [HttpGet]
+    public async Task<ActionResult<ServiceResponse<MaintenanceTaskResponse>>> GetAllAssets()
+    {
+        var response = await _taskService.GetAllTask();
+
+        if (!response.Success)
+        {
+            return BadRequest(response);
+        }
+
+        return Ok(response);
+    }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteTask(Guid id)
+    {
+        var userId = GetUserId();
+        var response = await _taskService.DeleteTask(id, userId);
+
+        if (!response.Success)
+        {
+            return BadRequest(response);
+        }
+
+        return Ok(response);
+    }
+    
 }

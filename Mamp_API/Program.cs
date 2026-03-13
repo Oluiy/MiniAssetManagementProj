@@ -1,4 +1,5 @@
 using System.Reflection;
+using Mamp_Application.BackgroundJobs;
 using Mamp_Application.Services.Implementations;
 using Mamp_Application.Services.Interfaces;
 using Mamp_Infrastructure;
@@ -38,7 +39,7 @@ namespace Mamp
             builder.Services.AddScoped<IAssetManagement, AssetManagement>();
             builder.Services.AddScoped<IMaintenanceTask, MaintenanceTaskService>();
             builder.Services.AddScoped<IDashboardService, DashboardService>();
-            
+            builder.Services.AddHostedService<EmailReminderBackgroundService>();
             builder.Services.AddAuthentication("Bearer")
                 .AddJwtBearer(options =>
                 {
