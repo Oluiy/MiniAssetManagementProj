@@ -2,6 +2,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Package, ClipboardList, LogOut, Settings, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '../store';
+import { clearAuthTokens } from '../api';
 
 const Layout = () => {
   const logout = useAuthStore(state => state.logout);
@@ -25,6 +26,7 @@ const Layout = () => {
           : 'Platform';
 
   const handleLogout = () => {
+    clearAuthTokens();
     logout();
     navigate('/login');
   };

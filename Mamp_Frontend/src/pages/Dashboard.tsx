@@ -327,7 +327,11 @@ export default function Dashboard() {
         </div>
 
         <div className="lg:col-span-1">
-          <EmailReminderPanel />
+          <EmailReminderPanel upcomingTasks={upcomingTasks.map(task => ({
+            title: task.title,
+            dueDate: task.dueDate,
+            status: task.normalizedStatus,
+          }))} />
         </div>
       </div>
     </div>

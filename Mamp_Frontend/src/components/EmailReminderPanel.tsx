@@ -1,30 +1,54 @@
 import { useState } from 'react';
 import { Bell, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
-import api from '../api';
+import { notificationApi } from '../api';
 
 type ReminderStatus = 'idle' | 'loading' | 'success' | 'error';
 
-export const EmailReminderPanel = () => {
+interface EmailReminderPanelProps {
+  upcomingTasks?: Array<{ title: string; dueDate: string; status: string | number }>;
+}
+
+export const EmailReminderPanel = ({ upcomingTasks = [] }: EmailReminderPanelProps) => {
   const [daysAhead, setDaysAhead] = useState(3);
   const [status, setStatus] = useState<ReminderStatus>('idle');
   const [message, setMessage] = useState('');
 
+  const tasksInWindow = upcomingTasks.filter(task => {
+    const statusValue = String(task.status).toLowerCase().replace(/\s+/g, '');
+    if (statusValue === 'completed' || statusValue === '3') return false;
+    const due = new Date(task.dueDate);
+    const now = new Date();
+    const cutoff = new Date();
+    cutoff.setDate(now.getDate() + daysAhead);
+    return due >= now && due <= cutoff;
+  });
+
   const sendReminders = async () => {
     setStatus('loading');
     setMessage('');
-
     try {
-      const res = await api.post('/api/Notification/send-reminders', { daysAhead });
-      setMessage(res.data?.message ?? `Reminders sent for tasks due in the next ${daysAhead} days.`);
+      const res = await notificationApi.sendReminder(daysAhead);
+      const successMessage =
+        res.data?.message ??
+        res.data?.Message ??
+        `Reminders sent successfully for tasks due in the next ${daysAhead} day${daysAhead > 1 ? 's' : ''}.`;
+
+      setMessage(successMessage);
       setStatus('success');
     } catch (err: any) {
-      const fallback = err?.response?.status === 404
-        ? 'Reminder endpoint is not connected yet. Ask the backend team to add POST /api/Notification/send-reminders.'
-        : 'Failed to send reminders. Please try again.';
-      setMessage(err?.response?.data?.message ?? fallback);
+      const errorMessage =
+        err?.response?.data?.message ??
+        err?.response?.data?.Message ??
+        err?.response?.data?.title ??
+        'Failed to send reminders. Please check your connection and try again.';
+
+      setMessage(errorMessage);
       setStatus('error');
     } finally {
-      window.setTimeout(() => setStatus('idle'), 5000);
+      setTimeout(() => {
+        setStatus('idle');
+        setMessage('');
+      }, 6000);
     }
   };
 
@@ -59,6 +83,19 @@ export const EmailReminderPanel = () => {
             </select>
             <span className="text-sm text-slate-500">from today</span>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <Bell size={14} className="text-slate-400 shrink-0" />
+          <p className="text-sm text-slate-600">
+            {tasksInWindow.length > 0 ? (
+              <>
+                <span className="font-semibold text-slate-800">{tasksInWindow.length}</span> task{tasksInWindow.length > 1 ? 's' : ''} will trigger a reminder
+              </>
+            ) : (
+              <span className="text-slate-400">No tasks due in this window</span>
+            )}
+          </p>
         </div>
 
         {status === 'success' && (

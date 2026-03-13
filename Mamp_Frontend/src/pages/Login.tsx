@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authApi } from '../api';
+import { authApi, storeAuthTokens } from '../api';
 import { useAuthStore } from '../store';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -13,8 +13,26 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await authApi.login({ email, password });
-      if (res.data?.data?.token?.accessToken) {
-        login(res.data.data.token.accessToken);
+      const payload = (res.data?.data ?? {}) as Record<string, any>;
+      const tokenPayload = (payload.token ?? payload) as Record<string, any>;
+
+      const accessToken =
+        tokenPayload.accessToken ??
+        tokenPayload.AccessToken ??
+        payload.accessToken ??
+        payload.AccessToken ??
+        payload.token;
+
+      const refreshToken =
+        tokenPayload.refreshToken ??
+        tokenPayload.RefreshToken ??
+        payload.refreshToken ??
+        payload.RefreshToken ??
+        '';
+
+      if (accessToken) {
+        storeAuthTokens(accessToken, refreshToken);
+        login(accessToken);
         navigate('/');
       }
     } catch { 

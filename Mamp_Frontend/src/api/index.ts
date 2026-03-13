@@ -8,12 +8,45 @@ import {
     SignupRequest,
     SignupResponse,
     AssetRequest,
-    MaintenanceTaskRequest
+    MaintenanceTaskRequest,
+    TokenResponse
 } from '../types';
+
+export const storeAuthTokens = (accessToken: string, refreshToken: string) => {
+  localStorage.setItem('token', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+  api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+};
+
+export const clearAuthTokens = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+  delete api.defaults.headers.common['Authorization'];
+};
+
+export const getAccessToken = (): string | null =>
+  localStorage.getItem('token');
+
+export const getRefreshToken = (): string | null =>
+  localStorage.getItem('refreshToken');
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5235',
 });
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
+  });
+  failedQueue = [];
+};
 
 // Normalise PascalCase .NET responses to camelCase
 api.interceptors.response.use((response) => {
@@ -41,6 +74,81 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config as any;
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !String(originalRequest.url || '').includes('/api/Auth/login') &&
+      !String(originalRequest.url || '').includes('/api/Auth/refresh')
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken =
+        localStorage.getItem('refreshToken') ??
+        sessionStorage.getItem('refreshToken');
+
+      if (!refreshToken) {
+        isRefreshing = false;
+        processQueue(error, null);
+        clearAuthTokens();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
+      try {
+        const response = await authApi.refresh(refreshToken);
+        const raw = (response as any)?.data?.data ?? (response as any)?.data ?? {};
+        const payload = raw as Record<string, any>;
+        const accessToken = payload.accessToken ?? payload.token ?? payload.AccessToken;
+        const newRefreshToken = payload.refreshToken ?? payload.RefreshToken ?? refreshToken;
+
+        if (!accessToken) {
+          throw new Error('Invalid refresh response');
+        }
+
+        storeAuthTokens(accessToken, newRefreshToken);
+        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+        processQueue(null, accessToken);
+        return api(originalRequest);
+      } catch (refreshError: any) {
+        processQueue(refreshError, null);
+        clearAuthTokens();
+        if (refreshError?.response?.status === 401 || refreshError?.response?.status === 403) {
+          window.location.href = '/login';
+        } else {
+          window.location.href = '/login';
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // ── ASSETS ──────────────────────────────────────────────
 export const assetsApi = {
@@ -72,8 +180,15 @@ export const authApi = {
     api.post<ServiceResponse<SignupResponse>>('/api/Auth/login', data),
   register: (data: SignupRequest) =>
     api.post<ServiceResponse<unknown>>('/api/Auth/register', data),
-    refreshToken: (refreshToken: string) =>
-    api.post<ServiceResponse<SignupResponse>>('/api/Auth/refresh-token', { refreshToken })
+  refreshToken: (refreshToken: string) =>
+    api.post<ServiceResponse<SignupResponse>>('/api/Auth/refresh-token', { refreshToken }),
+  refresh: (refreshToken: string) =>
+    api.post<ServiceResponse<TokenResponse>>('/api/Auth/refresh', { refreshToken }),
+};
+
+export const notificationApi = {
+  sendReminder: (daysAhead: number) =>
+    api.post('/api/Notification/SendReminder', { daysAhead }),
 };
 
 export default api;
