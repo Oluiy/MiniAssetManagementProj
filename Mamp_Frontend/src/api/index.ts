@@ -35,7 +35,7 @@ export const getUsername = (): string | null =>
   localStorage.getItem('user');
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5235',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://miniassetmanagementproj.onrender.com',
 });
 
 let isRefreshing = false;
