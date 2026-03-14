@@ -122,22 +122,22 @@ export default function Assets() {
                       <Badge value={getStatusValue(asset.status)} />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <Link
                           to={`/assets/${asset.id}`}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 focus:text-blue-600 focus:bg-blue-50 rounded-lg outline-none transition-colors"
                         >
                           <Eye size={15} />
                         </Link>
                         <Link
                           to={`/assets/${asset.id}/edit`}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 focus:text-indigo-600 focus:bg-indigo-50 rounded-lg outline-none transition-colors"
                         >
                           <Pencil size={15} />
                         </Link>
                         <button
                           onClick={() => handleDelete(asset.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 focus:text-red-600 focus:bg-red-50 rounded-lg outline-none transition-colors"
                         >
                           <Trash2 size={15} />
                         </button>

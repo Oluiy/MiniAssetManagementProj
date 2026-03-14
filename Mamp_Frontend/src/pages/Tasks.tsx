@@ -166,7 +166,12 @@ export default function Tasks() {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-700 font-medium">{task.assetName}</td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-semibold text-slate-900">{task.assetName}</div>
+                    {task.assetName?.includes('-') && (
+                      <div className="text-[10px] text-slate-400 mt-0.5 font-mono">ID: {task.assetId.slice(0, 8)}...</div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <Badge value={priorityValue} />
                   </td>
@@ -177,16 +182,16 @@ export default function Tasks() {
                     {task.dueDate ? new Date(task.dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric'}) : 'N/A'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <Link
                         to={`/tasks/${task.id}/edit`}
-                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 focus:text-indigo-600 focus:bg-indigo-50 rounded-lg outline-none transition-colors"
                       >
                         <Pencil size={15} />
                       </Link>
                       <button
                         onClick={() => handleDelete(task.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 focus:text-red-600 focus:bg-red-50 rounded-lg outline-none transition-colors"
                       >
                         <Trash2 size={15} />
                       </button>
@@ -213,32 +218,39 @@ export default function Tasks() {
               return (
                 <div key={task.id} className={`px-4 py-4 ${isOverdue ? 'bg-red-50/60' : ''}`}>
                   <div className="flex items-center justify-between mb-2 gap-3">
-                    <span className="font-semibold text-slate-900 text-sm">{task.title}</span>
+                    <span className="font-semibold text-slate-900 text-sm tracking-tight">{task.title}</span>
                     <Badge value={formatStatus(statusValue)} />
                   </div>
-                  <p className="text-xs text-slate-500">{task.assetName}</p>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-xs font-medium text-slate-700">{task.assetName}</span>
+                    {task.assetName?.includes('-') && (
+                      <span className="text-[9px] text-slate-400 font-mono italic">(ID: {task.assetId.slice(0, 4)}...)</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
                     <Badge value={priorityValue} />
                     {isOverdue && (
                       <span className="text-[10px] font-semibold text-red-500 bg-red-100 px-1.5 py-0.5 rounded-full">OVERDUE</span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 mt-2">
-                    Due {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
-                  </p>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => navigate(`/tasks/${task.id}/edit`)}
-                      className="flex-1 text-xs py-1.5 border border-blue-200 rounded-lg text-blue-600 hover:bg-blue-50"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(task.id)}
-                      className="flex-1 text-xs py-1.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50"
-                    >
-                      Delete
-                    </button>
+                  <div className="flex items-center justify-between mt-3">
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'N/A'}
+                    </p>
+                    <div className="flex gap-2">
+                       <button
+                        onClick={() => navigate(`/tasks/${task.id}/edit`)}
+                        className="text-[11px] px-3 py-1 border border-slate-200 rounded-lg text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(task.id)}
+                        className="text-[11px] px-3 py-1 border border-red-100 rounded-lg text-red-500 font-semibold hover:bg-red-50 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

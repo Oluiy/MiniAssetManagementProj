@@ -125,6 +125,13 @@ const Layout = () => {
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
               <span className="text-white text-xs font-bold">{user?.charAt(0)?.toUpperCase()}</span>
             </div>
+            <button
+              onClick={handleLogout}
+              className="lg:hidden p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </header>
 
