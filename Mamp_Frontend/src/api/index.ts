@@ -12,9 +12,10 @@ import {
     TokenResponse
 } from '../types';
 
-export const storeAuthTokens = (accessToken: string, refreshToken: string) => {
+export const storeAuthTokens = (accessToken: string, refreshToken: string, username: string) => {
   localStorage.setItem('token', accessToken);
   localStorage.setItem('refreshToken', refreshToken);
+  localStorage.setItem('user', username);
   api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 };
 
@@ -29,6 +30,9 @@ export const getAccessToken = (): string | null =>
 
 export const getRefreshToken = (): string | null =>
   localStorage.getItem('refreshToken');
+
+export const getUsername = (): string | null =>
+  localStorage.getItem('user');
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5235',
@@ -120,12 +124,13 @@ api.interceptors.response.use(
         const payload = raw as Record<string, any>;
         const accessToken = payload.accessToken ?? payload.token ?? payload.AccessToken;
         const newRefreshToken = payload.refreshToken ?? payload.RefreshToken ?? refreshToken;
+        const username = payload.username ?? payload.user ?? 'User';
 
         if (!accessToken) {
           throw new Error('Invalid refresh response');
         }
 
-        storeAuthTokens(accessToken, newRefreshToken);
+        storeAuthTokens(accessToken, newRefreshToken, username);
         api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;

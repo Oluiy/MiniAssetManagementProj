@@ -218,6 +218,42 @@ csx/
 
 # Microsoft Azure Emulator
 ecf/
+
+# Dependencies
+node_modules/
+.npm
+
+# Build outputs
+dist/
+build/
+publish/
+bin/
+obj/
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.production
+
+# .NET
+*.user
+*.suo
+.vs/
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
 rcf/
 
 # Windows Store app package directories and files

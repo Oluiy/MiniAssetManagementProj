@@ -92,10 +92,9 @@ export default function TaskForm() {
 
     try {
       if (isEdit && id) {
-        await Promise.all([
-          tasksApi.updateStatus(id, formData.status),
-          tasksApi.updatePriority(id, formData.priority)
-        ]);
+        // Send updates sequentially to avoid race conditions on the same task row.
+        await tasksApi.updatePriority(id, formData.priority);
+        await tasksApi.updateStatus(id, formData.status);
       } else {
         await tasksApi.create({
           ...formData,

@@ -30,8 +30,15 @@ export default function Login() {
         payload.RefreshToken ??
         '';
 
+        const username = tokenPayload.username ??
+        tokenPayload.user ??
+        payload.username ??
+        payload.user ??
+        '';
+
+       const user = typeof username === 'string' ? username : (username as Record<string, any>).name ?? 'User';
       if (accessToken) {
-        storeAuthTokens(accessToken, refreshToken);
+        storeAuthTokens(accessToken, refreshToken, user);
         login(accessToken);
         navigate('/');
       }
