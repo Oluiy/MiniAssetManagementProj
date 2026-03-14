@@ -27,11 +27,18 @@ public class EmailReminderBackgroundService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            // 1. Calculate how long to wait until exactly 8:00 AM
+            // === TESTING OVERRIDE ===
+            // Uncomment the line below to test the email exactly 10 seconds after the app starts.
+            // Be sure to comment it back out before pushing to production!
+            
+            // await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            
+            // ========================
+
+            // 1. Calculate how long to wait until exactly 8:00 AM (Server Local Time)
             var now = DateTime.Now;
             var nextRunTime = new DateTime(now.Year, now.Month, now.Day, 8, 0, 0);
 
-            // If it's already past 8:00 AM today, schedule it for 8:00 AM tomorrow
             if (now > nextRunTime)
             {
                 nextRunTime = nextRunTime.AddDays(1);
@@ -40,7 +47,7 @@ public class EmailReminderBackgroundService : BackgroundService
             var delay = nextRunTime - now;
             _logger.LogInformation($"Next email reminder sweep scheduled in {delay.TotalHours:F2} hours.");
 
-            // 2. Put the service to sleep until 8:00 AM
+            // 2. Put the service to sleep until 8:00 AM (Skip this if you uncommented the test line above)
             await Task.Delay(delay, stoppingToken);
 
             // 3. Wake up and execute the logic!
@@ -50,7 +57,7 @@ public class EmailReminderBackgroundService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while sending automated email reminders.");
+                _logger.LogError(ex, "A fatal error occurred in the email reminder background loop.");
             }
         }
     }
@@ -59,25 +66,23 @@ public class EmailReminderBackgroundService : BackgroundService
     {
         _logger.LogInformation("Waking up to process email reminders...");
 
-        // CRITICAL: We must create a scope to safely grab the database context inside a background job
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<MampDbContext>();
         var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        // Copy-pasted your logic from the NotificationController
         var targetDate = DateTime.UtcNow.AddDays(3);
 
+        // FIX: Removed the lower boundary so this catches tasks that are already overdue!
         var upcomingTasks = await db.MaintenanceTask
             .Include(t => t.User)
             .Include(t => t.Asset)
             .Where(t => t.Status != MaintenanceStatus.Completed 
-                     && t.DueDate <= targetDate 
-                     && t.DueDate >= DateTime.UtcNow)
+                     && t.DueDate <= targetDate) 
             .ToListAsync();
 
         if (!upcomingTasks.Any())
         {
-            _logger.LogInformation("No upcoming tasks found. Going back to sleep.");
+            _logger.LogInformation("No upcoming or overdue tasks found. Going back to sleep.");
             return;
         }
 
@@ -89,19 +94,53 @@ public class EmailReminderBackgroundService : BackgroundService
             var user = userGroup.Key;
             if (user == null || string.IsNullOrEmpty(user.Email)) continue;
 
-            var subject = "Automated Reminder: Upcoming Asset Maintenance Tasks";
-            var body = $"Hello {user.Username},\n\nYou have the following maintenance tasks due soon:\n\n";
+            var subject = "Action Required: Upcoming Asset Maintenance Tasks";
+            
+            var htmlBody = $@"
+            <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);"">
+                <div style=""background-color: #0f172a; padding: 25px; text-align: center;"">
+                    <h2 style=""margin: 0; color: #ffffff; font-size: 24px;"">Maintenance Reminder</h2>
+                </div>
+                <div style=""padding: 30px; background-color: #ffffff; color: #334155;"">
+                    <p style=""font-size: 16px; margin-top: 0;"">Hello <strong style=""color: #0f172a;"">{user.Username}</strong>,</p>
+                    <p style=""font-size: 16px; line-height: 1.6;"">This is an automated reminder that you have upcoming or overdue maintenance tasks requiring your attention.</p>
+                    <div style=""background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 20px; margin: 25px 0; border-radius: 0 6px 6px 0;"">
+                        <h3 style=""margin: 0 0 15px 0; color: #0f172a; font-size: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;"">Action Required</h3>";
 
             foreach (var task in userGroup)
             {
                 var assetName = task.Asset?.Name ?? "Unknown Asset";
-                body += $"- {task.Title} (Asset: {assetName}) - Due: {task.DueDate:yyyy-MM-dd}\n";
+                htmlBody += $@"
+                        <div style=""margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #cbd5e1;"">
+                            <p style=""margin: 5px 0; font-size: 15px;""><strong style=""color: #475569;"">Task:</strong> {task.Title}</p>
+                            <p style=""margin: 5px 0; font-size: 15px;""><strong style=""color: #475569;"">Asset:</strong> {assetName}</p>
+                            <p style=""margin: 5px 0; font-size: 15px;""><strong style=""color: #475569;"">Due Date:</strong> <span style=""color: #dc2626; font-weight: bold;"">{task.DueDate:yyyy-MM-dd}</span></p>
+                        </div>";
             }
 
-            body += "\nPlease log in to the dashboard to update their status.\n\nThank you.";
+            htmlBody += @"
+                    </div>
+                    <p style=""font-size: 16px; line-height: 1.6;"">Please log in to your dashboard to review the full task details and update the status once the work is completed.</p>
+                    <div style=""text-align: center; margin: 35px 0 15px 0;"">
+                        <a href=""https://your-frontend-url.com/dashboard"" style=""background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;"">Go to Dashboard</a>
+                    </div>
+                </div>
+                <div style=""background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 13px; color: #64748b; border-top: 1px solid #e2e8f0;"">
+                    <p style=""margin: 0;"">This is an automated message from your Asset Management System.</p>
+                    <p style=""margin: 5px 0 0 0;"">Please do not reply directly to this email.</p>
+                </div>
+            </div>";
 
-            await SendEmailAsync(user.Email, subject, body, config);
-            emailsSent++;
+            // FIX: Try-Catch wrapper to prevent one bad email from crashing the whole loop
+            try
+            {
+                await SendEmailAsync(user.Email, subject, htmlBody, config);
+                emailsSent++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to send email reminder to {user.Email}");
+            }
         }
 
         _logger.LogInformation($"Successfully sent {emailsSent} reminder emails.");
@@ -120,12 +159,13 @@ public class EmailReminderBackgroundService : BackgroundService
             EnableSsl = true
         };
 
-        var mailMessage = new MailMessage
+        // FIX: Added 'using' to properly dispose of the MailMessage to prevent memory leaks
+        using var mailMessage = new MailMessage
         {
             From = new MailAddress(senderEmail!, "Asset Management System"),
             Subject = subject,
             Body = body,
-            IsBodyHtml = false
+            IsBodyHtml = true
         };
 
         mailMessage.To.Add(toEmail);
