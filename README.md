@@ -133,10 +133,8 @@ MiniAssetManagementProj/
 
 ## Deployment
 
-- **Frontend:** Vercel (auto-deploy on push to `main`)
-- **Backend:** Render + Docker (set `VITE_API_BASE_URL` env var in Vercel)
+- **Frontend:** Vercel 
+- **Backend:** Render + Docker 
 - **Database:** Aiven PostgreSQL
-
-See `Mamp_API/Dockerfile` and deploy instructions in the Render dashboard.
 
 ---
