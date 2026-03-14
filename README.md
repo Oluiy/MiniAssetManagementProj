@@ -2,7 +2,7 @@
 
 A full-stack web application for managing physical assets and tracking maintenance tasks.
 
-**Live Demo:** [https://mini-asset-management-proj.vercel.app/](https://mini-asset-management-proj.vercel.app/)
+**Live Demo:** [https://mini-asset-management-proj.vercel.app](https://mini-asset-management-proj.vercel.app)
 
 ---
 
