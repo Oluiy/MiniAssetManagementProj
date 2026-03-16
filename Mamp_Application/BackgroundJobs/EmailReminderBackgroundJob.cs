@@ -27,15 +27,7 @@ public class EmailReminderBackgroundService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            // === TESTING OVERRIDE ===
-            // Uncomment the line below to test the email exactly 10 seconds after the app starts.
-            // Be sure to comment it back out before pushing to production!
-            
             // await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
-            
-            // ========================
-
-            // 1. Calculate how long to wait until exactly 8:00 AM (Server Local Time)
             var now = DateTime.Now;
             var nextRunTime = new DateTime(now.Year, now.Month, now.Day, 8, 0, 0);
 
@@ -46,11 +38,8 @@ public class EmailReminderBackgroundService : BackgroundService
 
             var delay = nextRunTime - now;
             _logger.LogInformation($"Next email reminder sweep scheduled in {delay.TotalHours:F2} hours.");
-
-            // 2. Put the service to sleep until 8:00 AM (Skip this if you uncommented the test line above)
             await Task.Delay(delay, stoppingToken);
-
-            // 3. Wake up and execute the logic!
+            
             try
             {
                 await ProcessEmailRemindersAsync();
@@ -71,8 +60,7 @@ public class EmailReminderBackgroundService : BackgroundService
         var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         var targetDate = DateTime.UtcNow.AddDays(3);
-
-        // FIX: Removed the lower boundary so this catches tasks that are already overdue!
+        
         var upcomingTasks = await db.MaintenanceTask
             .Include(t => t.User)
             .Include(t => t.Asset)
@@ -130,8 +118,7 @@ public class EmailReminderBackgroundService : BackgroundService
                     <p style=""margin: 5px 0 0 0;"">Please do not reply directly to this email.</p>
                 </div>
             </div>";
-
-            // FIX: Try-Catch wrapper to prevent one bad email from crashing the whole loop
+            
             try
             {
                 await SendEmailAsync(user.Email, subject, htmlBody, config);

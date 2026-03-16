@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using Mamp_Domain.Model.DTO;
 
 namespace Mamp_Application.Services.Implementations;
 
@@ -134,7 +133,6 @@ public class Authentication : IAuthenticationService
 
         try
         {
-            // 1. Statelessly validate the token signature and expiration
             var principal = _tokenService.GetPrincipalFromToken(oldRefreshToken);
             if (principal == null)
             {
@@ -142,8 +140,7 @@ public class Authentication : IAuthenticationService
                 response.Message = "Invalid or expired refresh token. Please log in again.";
                 return response;
             }
-
-            // 2. Security Check: Ensure this is a refresh token, not a stolen access token
+            
             var tokenType = principal.FindFirstValue("token_type");
             if (tokenType != "refresh")
             {
@@ -151,8 +148,7 @@ public class Authentication : IAuthenticationService
                 response.Message = "Invalid token type provided.";
                 return response;
             }
-
-            // 3. Extract the User ID
+            
             var userIdString = principal.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
             {
@@ -160,8 +156,7 @@ public class Authentication : IAuthenticationService
                 response.Message = "Invalid token payload.";
                 return response;
             }
-
-            // 4. Quick DB check just to ensure the user hasn't been deleted since their last login
+            
             var user = await _db.User.AsNoTracking().SingleOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {

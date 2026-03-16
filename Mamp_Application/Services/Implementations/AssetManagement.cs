@@ -1,6 +1,5 @@
 using System.Net;
 using Mamp_Application.Services.Interfaces;
-using Mamp_Domain.Model.DTO;
 using Mamp_Domain.Model.DTO.Request;
 using Mamp_Domain.Model.DTO.Response;
 using Mamp_Domain.Model.Entity;
@@ -205,8 +204,7 @@ public class AssetManagement : IAssetManagement
                 response.Message = "Asset not found.";
                 return response;
             }
-
-            // Security Check: Only the owner can delete the asset
+            
             if (asset.UserId != userId)
             {
                 response.Success = false;

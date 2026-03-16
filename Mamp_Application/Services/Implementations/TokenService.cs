@@ -80,7 +80,7 @@ public class TokenService : ITokenService
         var tokenHandler = new JwtSecurityTokenHandler();
         try
         {
-            // This mathematically proves your server signed the token and it hasn't been tampered with
+            // This mathematically proves your server signed the token, and it hasn't been tampered with
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
             var jwtSecurityToken = securityToken as JwtSecurityToken;
             
@@ -91,7 +91,7 @@ public class TokenService : ITokenService
         }
         catch
         {
-            return null; // Token is invalid, expired, or tampered with
+            return null; 
         }
     }
 }

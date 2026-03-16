@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Mamp_Domain.Model.DTO
+namespace Mamp_Domain.Model.DTO.Response
 {
     public record ServiceResponse
     {
