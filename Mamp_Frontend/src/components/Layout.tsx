@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ClipboardList, LogOut, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Building2, ClipboardList, LogOut, Settings, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '../store';
 import { clearAuthTokens } from '../api';
@@ -13,15 +13,15 @@ const Layout = () => {
 
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/assets', label: 'Assets', icon: Package },
+    { to: '/properties', label: 'Properties', icon: Building2 },
     { to: '/tasks', label: 'Tasks', icon: ClipboardList },
   ];
 
   const pageTitle =
     location.pathname === '/'
       ? 'Dashboard'
-      : location.pathname.startsWith('/assets')
-        ? 'Assets'
+      : location.pathname.startsWith('/properties')
+        ? 'Properties'
         : location.pathname.startsWith('/tasks')
           ? 'Tasks'
           : 'Platform';

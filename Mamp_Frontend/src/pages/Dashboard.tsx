@@ -106,6 +106,15 @@ export default function Dashboard() {
       subtitle: 'Registered across all locations',
     },
     {
+      label: 'Total Properties',
+      value: stats.totalProperty,
+      icon: Package,
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      borderColor: 'border-l-blue-500',
+      subtitle: 'Registered across all locations',
+    },
+    {
       label: 'Pending Tasks',
       value: stats.taskPending,
       icon: Clock,
@@ -149,7 +158,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
         {statCards.map(card => (
           <div
             key={card.label}

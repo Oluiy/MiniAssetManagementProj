@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { assetsApi } from '../api';
 import { AssetResponse, AssetStatus } from '../types';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, Pencil, Trash2, Plus, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, Pencil, Trash2, Plus, Search, Package, MapPin, Tag, Filter, ArrowLeft } from 'lucide-react';
 import { Badge } from '../components/Badge';
 
 export default function Assets() {
@@ -23,12 +23,12 @@ export default function Assets() {
     const s = String(status).toLowerCase().replace(/\s+/g, '');
     if (s === String(AssetStatus.Active) || s === 'active') return 'Active';
     if (s === String(AssetStatus.Inactive) || s === 'inactive') return 'Inactive';
-    if (s === String(AssetStatus.UnderMaintenance) || s === 'undermaintenance') return 'UnderMaintenance';
+    if (s === String(AssetStatus.UnderMaintenance) || s === 'undermaintenance') return 'Under Maintenance';
     return 'Unknown';
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this asset? This will also delete all associated maintenance tasks.')) return;
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return;
     
     try {
       await assetsApi.delete(id);
@@ -40,106 +40,161 @@ export default function Assets() {
   };
 
   const filteredAssets = assets.filter(asset => {
-    const statusValue = getStatusValue(asset.status);
-    const label = statusValue === 'UnderMaintenance' ? 'Under Maintenance' : statusValue;
+    const label = getStatusValue(asset.status);
     const matchesSearch =
       asset.name.toLowerCase().includes(search.toLowerCase()) ||
-      asset.type.toLowerCase().includes(search.toLowerCase());
+      asset.type.toLowerCase().includes(search.toLowerCase()) ||
+      asset.location.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = !statusFilter || label === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) return <div className="text-slate-500">Loading assets...</div>;
+  if (loading) return (
+    <div className="max-w-6xl mx-auto space-y-6 animate-pulse p-4">
+      <div className="flex justify-between items-center">
+        <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+        <div className="h-10 bg-slate-200 rounded w-32"></div>
+      </div>
+      <div className="h-12 bg-slate-100 rounded-xl"></div>
+      <div className="bg-white rounded-2xl border border-slate-200 h-96"></div>
+    </div>
+  );
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-6xl mx-auto space-y-6 p-4">
+      
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/properties')}
+            className="group p-2 grid-cols-2 rounded-xl hover:bg-slate-100 transition-all border border-transparent hover:border-slate-200"
+            title="Back to properties"
+          >
+            <ArrowLeft size={20} className="text-slate-500 group-hover:text-slate-900" />
+          </button>
+        </div>
+      </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Assets</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Manage and monitor your physical assets</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Active Assets</h1>
+          <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+            <Package size={14} className="text-slate-400" />
+            Total of {assets.length} equipment registered
+          </p>
         </div>
         <button
           onClick={() => navigate('/assets/new')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-100 transition-all active:scale-95 text-sm"
         >
-          <Plus size={16} />
-          Add New Asset
+          <Plus size={18} />
+          Add Asset
         </button>
       </div>
 
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-xs">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      {/* Filters Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-4">
+        <div className="relative flex-1 w-full">
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
-            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            placeholder="Search by name or type..."
+            className="w-full pl-11 pr-4 py-2.5 text-sm border-none bg-slate-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400"
+            placeholder="Search by name, type or location..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700"
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-        >
-          <option value="">All Statuses</option>
-          <option>Active</option>
-          <option>Inactive</option>
-          <option>Under Maintenance</option>
-        </select>
+        
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-48">
+            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <select
+              className="w-full pl-9 pr-8 py-2.5 text-sm border-none bg-slate-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none text-slate-600 font-medium transition-all"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+            >
+              <option value="">Status: All</option>
+              <option>Active</option>
+              <option>Inactive</option>
+              <option>Under Maintenance</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="hidden md:block overflow-x-auto">
+      {/* Table Section */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-6 py-3 w-12">S/N</th>
-                <th className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">Name</th>
-                <th className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">Type</th>
-                <th className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">Location</th>
-                <th className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">Status</th>
-                <th className="text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-6 py-3">Actions</th>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest px-8 py-4 w-16">Ref</th>
+                <th className="text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest px-6 py-4">Asset Detail</th>
+                <th className="text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest px-6 py-4">Type</th>
+                <th className="text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest px-6 py-4">Location</th>
+                <th className="text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest px-6 py-4">Status</th>
+                <th className="text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest px-8 py-4">Option</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredAssets.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-6 text-center text-sm text-slate-500">
-                    No assets found for the current filters.
+                  <td colSpan={6} className="px-6 py-20 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-dashed border-slate-200">
+                        <Search size={24} className="text-slate-300" />
+                      </div>
+                      <p className="text-slate-900 font-bold text-lg">No equipment found</p>
+                      <p className="text-slate-500 text-sm mt-1">Try adjusting your search or filters</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 filteredAssets.map((asset, i) => (
-                  <tr key={asset.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-6 py-4 text-sm text-slate-400">{i + 1}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-slate-900">{asset.name}</span>
+                  <tr key={asset.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-8 py-5 text-slate-400 font-mono text-xs">#{String(i + 1).padStart(2, '0')}</td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-900 leading-tight">{asset.name}</span>
+                        <span className="text-[11px] text-slate-400 font-mono mt-0.5 truncate max-w-30">{asset.id.split('-')[0]}..</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{asset.type}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{asset.location}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2">
+                        <Tag size={12} className="text-slate-300" />
+                        <span className="text-sm text-slate-600 font-medium">{asset.type}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={12} className="text-slate-300" />
+                        <span className="text-sm text-slate-600 font-medium">{asset.location}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
                       <Badge value={getStatusValue(asset.status)} />
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                        <Link
-                          to={`/assets/${asset.id}`}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 focus:text-blue-600 focus:bg-blue-50 rounded-lg outline-none transition-colors"
-                        >
-                          <Eye size={15} />
-                        </Link>
-                        <Link
-                          to={`/assets/${asset.id}/edit`}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 focus:text-indigo-600 focus:bg-indigo-50 rounded-lg outline-none transition-colors"
-                        >
-                          <Pencil size={15} />
-                        </Link>
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => handleDelete(asset.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 focus:text-red-600 focus:bg-red-50 rounded-lg outline-none transition-colors"
+                          onClick={() => navigate(`/assets/${asset.id}`)}
+                          title="View Details"
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 hover:shadow-sm"
                         >
-                          <Trash2 size={15} />
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => navigate(`/assets/${asset.id}/edit`)}
+                          title="Edit Equipment"
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 hover:shadow-sm"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(asset.id, asset.name)}
+                          title="Delete Asset"
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 hover:shadow-sm"
+                        >
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
@@ -148,42 +203,6 @@ export default function Assets() {
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="md:hidden divide-y divide-slate-100">
-          {filteredAssets.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-slate-500">No assets found for the current filters.</p>
-          ) : (
-            filteredAssets.map(asset => (
-              <div key={asset.id} className="px-4 py-4">
-                <div className="flex items-center justify-between mb-2 gap-3">
-                  <span className="font-semibold text-slate-900 text-sm">{asset.name}</span>
-                  <Badge value={getStatusValue(asset.status)} />
-                </div>
-                <p className="text-xs text-slate-500">{asset.type} · {asset.location}</p>
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={() => navigate(`/assets/${asset.id}`)}
-                    className="flex-1 text-xs py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => navigate(`/assets/${asset.id}/edit`)}
-                    className="flex-1 text-xs py-1.5 border border-blue-200 rounded-lg text-blue-600 hover:bg-blue-50"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(asset.id)}
-                    className="flex-1 text-xs py-1.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
         </div>
       </div>
     </div>

@@ -155,12 +155,7 @@ export default function TaskForm() {
           </div>
         )}
 
-        {isEdit && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-5 text-sm text-blue-700">
-            <strong>Note:</strong> Due to API limitations, only Status and Priority can be updated for existing tasks.
-          </div>
-        )}
-
+        
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">

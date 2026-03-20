@@ -9,7 +9,8 @@ import {
     SignupResponse,
     AssetRequest,
     MaintenanceTaskRequest,
-    TokenResponse
+    TokenResponse,
+    Property
 } from '../types';
 
 export const storeAuthTokens = (accessToken: string, refreshToken: string, username: string) => {
@@ -35,7 +36,7 @@ export const getUsername = (): string | null =>
   localStorage.getItem('user');
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://miniassetmanagementproj.onrender.com',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5235',
 });
 
 let isRefreshing = false;
@@ -194,6 +195,14 @@ export const authApi = {
 export const notificationApi = {
   sendReminder: (daysAhead: number) =>
     api.post('/api/Notification/SendReminder', { daysAhead }),
+};
+
+export const propertiesApi = {
+  getAll: () => api.get<ServiceResponse<Property[]>>('/api/Property'),
+  getById: (id: string) => api.get<ServiceResponse<Property>>(`/api/Property/${id}`),
+  create: (data: Partial<Property>) => api.post<ServiceResponse<Property>>('/api/Property', data),
+  update: (id: string, data: Partial<Property>) => api.put<ServiceResponse<Property>>(`/api/Property/${id}`, data),
+  delete: (id: string) => api.delete(`/api/Property/${id}`),
 };
 
 export default api;

@@ -2,6 +2,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuthStore } from './store';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import Properties from './pages/Properties';
+import PropertyDetail from './pages/PropertyDetail';
+import PropertyForm from './pages/PropertyForm';
 import Assets from './pages/Assets';
 import AssetDetail from './pages/AssetDetail';
 import AssetForm from './pages/AssetForm';
@@ -23,6 +26,10 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/properties" element={<Properties />} />
+          <Route path="/properties/new" element={<PropertyForm />} />
+          <Route path="/properties/:id/edit" element={<PropertyForm />} />
+          <Route path="/properties/:id" element={<PropertyDetail />} />
           <Route path="/assets" element={<Assets />} />
           <Route path="/assets/new" element={<AssetForm />} />
           <Route path="/assets/:id/edit" element={<AssetForm />} />

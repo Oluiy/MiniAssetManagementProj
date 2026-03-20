@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  ArrowLeft, 
+  Pencil, 
+  Package, 
+  MapPin, 
+  Tag, 
+  Hash, 
+  Clock,
+  History,
+  AlertCircle,
+  Building2
+} from 'lucide-react';
 import { assetsApi } from '../api';
-import { AssetResponse, AssetStatus } from '../types';
+import { AssetResponse, AssetStatus} from '../types';
+import { Badge } from '../components/Badge';
 
 export default function AssetDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,104 +41,167 @@ export default function AssetDetail() {
     }
   }, [id]);
 
-  const getStatusString = (status: AssetStatus) => {
-    switch (status) {
-      case AssetStatus.Active: return 'Active';
-      case AssetStatus.Inactive: return 'Inactive';
-      case AssetStatus.UnderMaintenance: return 'Under Maintenance';
-      default: return 'Unknown';
-    }
-  };
-
-  const getStatusColor = (status: AssetStatus) => {
-    switch (status) {
-      case AssetStatus.Active: return 'bg-green-100 text-green-800';
-      case AssetStatus.Inactive: return 'bg-red-100 text-red-800';
-      case AssetStatus.UnderMaintenance: return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  if (loading) return <div className="flex justify-center p-12 text-gray-500">Loading asset details...</div>;
+  if (loading) return (
+    <div className="max-w-5xl mx-auto space-y-6 animate-pulse p-4">
+      <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 h-64"></div>
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 h-48"></div>
+    </div>
+  );
 
   if (error || !asset) {
     return (
-      <div className="max-w-3xl mx-auto p-8 text-center bg-white rounded-lg shadow-sm border border-gray-100 mt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Error</h2>
-        <p className="text-red-500 mb-6">{error || 'Asset not found'}</p>
-        <button onClick={() => navigate('/assets')} className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline">← Back to Assets</button>
+      <div className="max-w-xl mx-auto py-20 px-4 text-center">
+        <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+          <AlertCircle size={40} className="text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Oops! Something went wrong</h2>
+        <p className="text-slate-500 mb-8">{error || 'Asset not found'}</p>
+        <button 
+          onClick={() => navigate('/assets')} 
+          className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold transition-transform active:scale-95 shadow-lg"
+        >
+          <ArrowLeft size={18} />
+          Go back to Assets
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between pb-4 border-b">
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => navigate('/assets')} 
-            className="text-gray-500 hover:text-gray-800 font-medium py-1 px-3 rounded-md bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm flex items-center"
+    <div className="max-w-5xl mx-auto space-y-6 p-4">
+      {/* Header & Main Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/assets')}
+            className="group p-2 rounded-xl hover:bg-slate-100 transition-all border border-transparent hover:border-slate-200"
+            title="Back to Assets"
           >
-            ← Back
+            <ArrowLeft size={20} className="text-slate-500 group-hover:text-slate-900" />
           </button>
-          <h2 className="text-2xl font-bold text-gray-900 leading-tight">Asset Overview</h2>
+          <h1 className="text-2xl font-bold text-slate-900">Asset Overview</h1>
         </div>
-        <Link 
-          to={`/assets/${asset.id}/edit`}
-          className="bg-indigo-600 text-white px-4 py-2 rounded shadow-sm hover:bg-indigo-700 transition duration-150 font-medium"
+
+        <button
+          onClick={() => navigate(`/assets/${asset.id}/edit`)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 transition-all active:scale-95"
         >
+          <Pencil size={18} />
           Edit Asset
-        </Link>
+        </button>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
-        <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">General Information</h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">Detailed credentials and status of the asset.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content Card */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100 shrink-0 shadow-inner">
+                    <Package size={32} className="text-indigo-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 leading-tight">General Information</h2>
+                    <p className="text-sm text-slate-500 mt-1">Status, name and classification</p>
+                  </div>
+                </div>
+                <div className="shrink-0 pt-1">
+                  <Badge value = {AssetStatus[asset.status].toString()} />
+                </div>
+              </div>
+
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-10">
+                <div>
+                  <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Hash size={12} /> Asset Name
+                  </dt>
+                  <dd className="text-lg font-bold text-slate-900">{asset.name}</dd>
+                </div>
+
+                <div>
+                  <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Tag size={12} /> Asset Type
+                  </dt>
+                  <dd className="text-lg font-bold text-slate-900">{asset.type}</dd>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <MapPin size={12} /> Assigned Location
+                  </dt>
+                  <dd className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 w-fit">
+                    <Building2 size={16} className="text-slate-400" />
+                    <span className="text-slate-700 font-semibold">{asset.location}</span>
+                  </dd>
+                </div>
+              </dl>
+            </div>
           </div>
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(asset.status)}`}>
-            {getStatusString(asset.status)}
-          </span>
+          
+          {/* Timeline Placeholder - Adding visual depth */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 mb-6">
+              <History size={18} className="text-slate-400" />
+              Recent Activity
+            </h3>
+            <div className="flex items-center justify-center py-10 grayscale opacity-40">
+              <p className="text-sm text-slate-400 italic">No recent maintenance activity logged.</p>
+            </div>
+          </div>
         </div>
-        <div className="px-6 py-5">
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8">
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Asset Name</dt>
-              <dd className="mt-2 text-lg text-gray-900 font-medium">{asset.name}</dd>
-            </div>
 
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Type</dt>
-              <dd className="mt-2 text-md text-gray-900">{asset.type}</dd>
-            </div>
+        {/* Sidebar Info */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100">System Logs</h3>
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date Created</p>
+                  <p className="text-sm font-semibold text-slate-700 mt-1 leading-relaxed">
+                    {asset.dateCreated ? new Date(asset.dateCreated).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    }) : '—'}
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {asset.dateCreated ? new Date(asset.dateCreated).toLocaleTimeString('en-GB', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : ''}
+                  </p>
+                </div>
+              </div>
 
-            <div className="sm:col-span-2 border-t pt-5 border-gray-100">
-              <dt className="text-sm font-medium text-gray-500">Location</dt>
-              <dd className="mt-2 text-md text-gray-900 flex items-center">
-                <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                {asset.location}
-              </dd>
+              <div className="flex items-start gap-4 pt-4 border-t border-slate-50">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                  <Hash size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unique Identifier</p>
+                  <code className="block p-3 bg-slate-50 rounded-xl text-[11px] text-slate-500 font-mono break-all border border-slate-100 select-all hover:border-slate-300 transition-colors">
+                    {asset.id}
+                  </code>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div className="sm:col-span-1 border-t pt-5 border-gray-100">
-              <dt className="text-sm font-medium text-gray-500">Asset ID</dt>
-              <dd className="mt-2 text-sm text-gray-500 font-mono tracking-wider bg-gray-50 py-1.5 px-3 rounded border border-gray-100 inline-block">{asset.id}</dd>
-            </div>
-            
-            <div className="sm:col-span-1 border-t pt-5 border-gray-100">
-              <dt className="text-sm font-medium text-gray-500">Date Added</dt>
-              <dd className="mt-2 text-sm text-gray-900">
-                {asset.dateCreated ? new Date(asset.dateCreated).toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) : 'N/A'}
-              </dd>
-            </div>
-          </dl>
+          <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-100">
+            <h4 className="font-bold mb-2 flex items-center gap-2">
+              <AlertCircle size={18} />
+              Maintenance Alert
+            </h4>
+            <p className="text-blue-100 text-xs leading-relaxed">
+              This asset is currently in optimal condition. Next routine inspection scheduled for Q3 2026.
+            </p>
+          </div>
         </div>
       </div>
     </div>

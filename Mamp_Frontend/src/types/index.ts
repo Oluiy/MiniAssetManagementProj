@@ -13,6 +13,7 @@ export interface AssetResponse {
 
 export interface DashboardResponse {
     totalAsset: number;
+    totalProperty: number;
     taskPending: number;
     taskInProgress: number;
     taskCompleted: number;
@@ -47,6 +48,30 @@ export interface SignupResponse {
     email: string;
     token: TokenResponse;
 }
+
+export interface AssetSummaryResponse {
+    id: string;
+    name: string;
+    status: string;
+}
+
+export interface Property {
+    id: string;
+    name: string;
+    address: string;
+    type: string;
+    description?: string;
+    status: string;
+    dateCreated: string;
+    assetCount: number;
+    assets: AssetSummaryResponse[];
+}
+
+export interface Asset extends AssetResponse {
+    propertyId?: string;
+    propertyName?: string;
+}
+
 export interface AssetRequest {
     name: string;
     type: string;
