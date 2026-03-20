@@ -50,6 +50,10 @@ public class MampDbContext : DbContext
         modelBuilder.Entity<MaintenanceTask>()
             .Property(t => t.Status)
             .HasConversion<string>();
+
+        modelBuilder.Entity<Property>()
+            .Property(p => p.Status)
+            .HasConversion<string>();
         
         // 1. User -> Asset Relationship
         // One User has Many Assets.

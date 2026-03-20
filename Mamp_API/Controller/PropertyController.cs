@@ -28,6 +28,16 @@ public class PropertyController : ControllerBase
         if (!response.Success) return BadRequest(response);
         return Ok(response);
     }
+    
+    [HttpPost("{id:guid}")]
+    public async Task<IActionResult> EditProperty(Guid id, [FromBody] PropertyRequest request)
+    {
+        var userId = GetUserId();
+        var response = await _propertyService.EditProperty(request, userId, id);
+
+        if (!response.Success) return BadRequest(response);
+        return Ok(response);
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetProperties()
@@ -48,20 +58,29 @@ public class PropertyController : ControllerBase
         if (!response.Success) return NotFound(response);
         return Ok(response);
     }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteProperty(Guid id)
+    {
+        var userId = GetUserId();
+        var response = await _propertyService.DeleteProperty(id, userId);
+
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
 
     private Guid GetUserId()
     {
-        var userIdClaim = User.Claims.FirstOrDefault(c => 
-            c.Type == JwtRegisteredClaimNames.Sub || 
-            c.Type == ClaimTypes.NameIdentifier);
-
-        var userIdString = userIdClaim?.Value;
+        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                           ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
         {
-            throw new UnauthorizedAccessException("Invalid user token or missing Subject claim.");
+            throw new UnauthorizedAccessException("Invalid user token.");
         }
-        
+
         return userId;
     }
 }
