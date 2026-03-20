@@ -40,7 +40,7 @@ public class PropertyManagementService : IPropertyManagement
                 Id = property.Id,
                 Name = property.Name,
                 Address = property.Address,
-                AssetCount = 0
+                AssetCount = property.Assets.Count
             };
         }
         catch (Exception ex)
@@ -48,6 +48,59 @@ public class PropertyManagementService : IPropertyManagement
             response.Success = false;
             var actualError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
             response.Message = $"Error creating property: {actualError}";
+        }
+
+        return response;
+    }
+    
+    public async Task<ServiceResponse<PropertyResponse>> EditProperty(PropertyRequest request, Guid userId, Guid propertyId)
+    {
+        var response = new ServiceResponse<PropertyResponse>();
+
+        try
+        {
+            var property = await _db.Property.SingleOrDefaultAsync(p => p.Id == propertyId);
+
+            if (property == null)
+            {
+                response.Success = false;
+                response.Message = "Property not found.";
+                return response;
+            }
+            if (property.UserId != userId)
+            {
+                response.Success = false;
+                response.Message = "You do not have permission to edit this property.";
+                return response;
+            }
+
+            // Apply updates
+            property.Name = request.Name;
+            property.Type = request.Type;
+            property.Address = request.Address;
+            property.Status = request.Status;
+
+            _db.Property.Update(property);
+            await _db.SaveChangesAsync();
+            
+            var data = new PropertyResponse
+            {
+                Id = property.Id,
+                Name = property.Name,
+                Type = property.Type,
+                Address= property.Address,
+                Status = property.Status,
+                DateCreated = property.CreatedAt
+            };
+
+            response.Success = true;
+            response.Message = "Property updated successfully.";
+            response.Data = data;
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            response.Message = $"Error updating property: {ex.Message}";
         }
 
         return response;
@@ -119,6 +172,43 @@ public class PropertyManagementService : IPropertyManagement
         {
             response.Success = false;
             response.Message = $"Error fetching property: {ex.Message}";
+        }
+
+        return response;
+    }
+    public async Task<ServiceResponse> DeleteProperty(Guid propertyId, Guid userId)
+    {
+        var response = new ServiceResponse();
+
+        try
+        {
+            var property = await _db.Property.FirstOrDefaultAsync(p => p.Id == propertyId);
+
+            if (property == null)
+            {
+                response.Success = false;
+                response.Message = "Property not found.";
+                return response;
+            }
+            
+            if (property.UserId != userId)
+            {
+                response.Success = false;
+                response.Message = "You do not have permission to delete this property.";
+                return response;
+            }
+
+            _db.Property.Remove(property);
+            await _db.SaveChangesAsync();
+
+            response.Success = true;
+            response.Message = "Property and all associated assets were deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            var actualError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+            response.Message = $"Error deleting asset: {actualError}";
         }
 
         return response;
