@@ -96,10 +96,8 @@ public class MampDbContext : DbContext
     
     public DbSet<User> User { get; set; }
     public DbSet<Asset> Asset { get; set; }
-    public DbSet<Property> Property { get; set; }
     public DbSet<MaintenanceTask> MaintenanceTask { get; set; }
-    
-    
+    public DbSet<Property> Property { get; set; }
     // I need to migrate this to the online database: dotnet ef migrations add "name of migrations"
     // Then push to the DMBS : dotnet ef database update
 }

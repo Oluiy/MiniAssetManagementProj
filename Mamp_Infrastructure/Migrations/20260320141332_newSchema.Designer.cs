@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mamp_Infrastructure.Migrations
 {
     [DbContext(typeof(MampDbContext))]
-    [Migration("20260320132509_AddedPropertyEntity")]
-    partial class AddedPropertyEntity
+    [Migration("20260320141332_newSchema")]
+    partial class newSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

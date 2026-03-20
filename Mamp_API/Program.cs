@@ -36,6 +36,7 @@ namespace Mamp
             
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddScoped<IPropertyManagement, PropertyManagementService>();
             builder.Services.AddScoped<IAssetManagement, AssetManagementService>();
             builder.Services.AddScoped<IMaintenanceTask, MaintenanceTaskService>();
             builder.Services.AddScoped<IDashboardService, DashboardService>();
