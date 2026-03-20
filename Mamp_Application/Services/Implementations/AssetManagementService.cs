@@ -1,6 +1,5 @@
 using System.Net;
 using Mamp_Application.Services.Interfaces;
-using Mamp_Domain.Model.DTO;
 using Mamp_Domain.Model.DTO.Request;
 using Mamp_Domain.Model.DTO.Response;
 using Mamp_Domain.Model.Entity;
@@ -9,11 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mamp_Application.Services.Implementations;
 
-public class AssetManagement : IAssetManagement
+public class AssetManagementService : IAssetManagement
 {
     private readonly MampDbContext _db;
 
-    public AssetManagement(MampDbContext db)
+    public AssetManagementService(MampDbContext db)
     {
         _db = db;
     }
@@ -23,6 +22,13 @@ public class AssetManagement : IAssetManagement
         var response = new ServiceResponse<AssetResponse>();
         try
         {
+            var propertyExist = await _db.Property.AnyAsync(p => p.Id == request.PropertyId);
+            if (!propertyExist)
+            {
+                response.Success = false;
+                response.Message = "The specified Property does not exist.";
+                return response;
+            }
             var newAsset = new Asset
             {
                 Id = Guid.NewGuid(),
@@ -31,7 +37,8 @@ public class AssetManagement : IAssetManagement
                 Location = request.Location,
                 Status = request.Status, // Default status on creation
                 CreatedAt = DateTime.UtcNow,
-                UserId = userId // Links the asset to the logged-in user
+                UserId = userId,// Links the asset to the logged-in user
+                PropertyId = request.PropertyId
             };
 
             _db.Asset.Add(newAsset);
@@ -205,8 +212,7 @@ public class AssetManagement : IAssetManagement
                 response.Message = "Asset not found.";
                 return response;
             }
-
-            // Security Check: Only the owner can delete the asset
+            
             if (asset.UserId != userId)
             {
                 response.Success = false;

@@ -4,23 +4,27 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Mamp_Domain.Model.DTO.Request;
 using Mamp_Application.Services.Interfaces;
-using Mamp_Domain.Model.DTO;
+using Mamp_Domain.Model.DTO.Response;
 
 namespace Mamp.Controller;
 
+
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // Locks down all endpoints to authenticated users only
+[Authorize]
 public class MaintenanceTaskController : ControllerBase
 {
     private readonly IMaintenanceTask _taskService;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="taskService"></param>
     public MaintenanceTaskController(IMaintenanceTask taskService)
     {
         _taskService = taskService;
     }
-
-    // Helper method to securely extract the UserId from the JWT token
+    
     private Guid GetUserId()
     {
         var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub) 

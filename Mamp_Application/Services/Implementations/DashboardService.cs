@@ -1,5 +1,4 @@
 using Mamp_Application.Services.Interfaces;
-using Mamp_Domain.Model.DTO;
 using Mamp_Domain.Model.DTO.Response;
 using Mamp_Domain.Model.Enum;
 using Mamp_Infrastructure;

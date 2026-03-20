@@ -8,4 +8,5 @@ public record AssetRequest
     public string Type { get; init; } = "";
     public string Location { get; init; } = "";
     public AssetStatus Status { get; init; }
+    public Guid PropertyId { get; set; } 
 }

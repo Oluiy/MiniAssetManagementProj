@@ -1,8 +1,8 @@
 using System.Net;
 using Mamp_Application.Services.Interfaces;
-using Mamp_Domain.Model.DTO;
 using Microsoft.EntityFrameworkCore;
 using Mamp_Domain.Model.DTO.Request;
+using Mamp_Domain.Model.DTO.Response;
 using Mamp_Domain.Model.Entity;
 using Mamp_Domain.Model.Enum;
 using Mamp_Infrastructure;

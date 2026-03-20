@@ -21,7 +21,6 @@ namespace Mamp.Controller
         // Secure token extraction helper
         private Guid GetUserId()
         {
-            // Safely check for "sub" first. If it's null, fallback to NameIdentifier.
             var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub) 
                                ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
