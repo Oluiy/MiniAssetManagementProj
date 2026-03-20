@@ -3,6 +3,7 @@ using System;
 using Mamp_Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mamp_Infrastructure.Migrations
 {
     [DbContext(typeof(MampDbContext))]
-    partial class MampDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260320132509_AddedPropertyEntity")]
+    partial class AddedPropertyEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
