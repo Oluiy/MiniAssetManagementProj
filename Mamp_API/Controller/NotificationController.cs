@@ -5,7 +5,7 @@ using System.Net.Mail;
 using Mamp_Infrastructure;
 using Mamp_Domain.Model.Enum; 
 
-namespace Mamp_API.Controller;
+namespace Mamp.Controller;
 
 [ApiController]
 [Route("api/[controller]")]

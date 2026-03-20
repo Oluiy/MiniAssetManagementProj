@@ -10,13 +10,13 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Mamp_Application.Services.Implementations;
 
-public class Authentication : IAuthenticationService
+public class AuthenticationService : IAuthenticationService
 {
     private readonly MampDbContext _db;
     private readonly ITokenService _tokenService;
     private readonly IConfiguration _config;
     
-    public Authentication(MampDbContext db, ITokenService tokenService, IConfiguration config)
+    public AuthenticationService(MampDbContext db, ITokenService tokenService, IConfiguration config)
     {
         _db = db;
         _tokenService = tokenService;

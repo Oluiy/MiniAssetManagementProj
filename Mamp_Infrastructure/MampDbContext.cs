@@ -80,9 +80,22 @@ public class MampDbContext : DbContext
             // Restrict: If an employee leaves and their user account is deleted, 
             // you still want to keep the historical record of the tasks they performed.
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Asset>()
+            .HasOne(a => a.Property)
+            .WithMany(p => p.Assets)
+            .HasForeignKey(a => a.PropertyId)
+            // Restrict prevents you from accidentally deleting a Property 
+            // if it still has Assets linked to it.
+            .OnDelete(DeleteBehavior.Restrict);
     }
     
     public DbSet<User> User { get; set; }
     public DbSet<Asset> Asset { get; set; }
+    public DbSet<Property> Property { get; set; }
     public DbSet<MaintenanceTask> MaintenanceTask { get; set; }
+    
+    
+    // I need to migrate this to the online database: dotnet ef migrations add "name of migrations"
+    // Then push to the DMBS : dotnet ef database update
 }

@@ -35,8 +35,8 @@ namespace Mamp
             //     builder.Configuration.GetSection("EmailSettings"));
             
             builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services.AddScoped<IAuthenticationService, Authentication>();
-            builder.Services.AddScoped<IAssetManagement, AssetManagement>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddScoped<IAssetManagement, AssetManagementService>();
             builder.Services.AddScoped<IMaintenanceTask, MaintenanceTaskService>();
             builder.Services.AddScoped<IDashboardService, DashboardService>();
             builder.Services.AddHostedService<EmailReminderBackgroundService>();
