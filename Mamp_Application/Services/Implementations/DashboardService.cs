@@ -26,8 +26,12 @@ public class DashboardService : IDashboardService
                 .Where(a => a.UserId == userId)
                 .CountAsync();
 
-            // Count of Pending Tasks
-            var pendingTasks = await _db.MaintenanceTask
+            var totalProperties = await _db.Property
+                .Where(p => p.UserId == userId)
+                .CountAsync();
+
+                // Count of Pending Tasks
+                var pendingTasks = await _db.MaintenanceTask
                 .Where(t => t.UserId == userId && t.Status == MaintenanceStatus.Pending)
                 .CountAsync();
 
@@ -44,6 +48,7 @@ public class DashboardService : IDashboardService
             response.Data = new DashboardResponse
             {
                 TotalAsset = totalAssets,
+                TotalProperty = totalProperties,
                 TaskPending = pendingTasks,
                 TaskInProgress = inProgressTasks,
                 TaskCompleted = completedTasks

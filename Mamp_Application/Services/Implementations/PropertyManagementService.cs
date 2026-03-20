@@ -27,6 +27,9 @@ public class PropertyManagementService : IPropertyManagement
                 Id = Guid.NewGuid(),
                 Name = request.Name,
                 Address = request.Address,
+                Type = request.Type,
+                Status = request.Status,
+                UserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -120,7 +123,15 @@ public class PropertyManagementService : IPropertyManagement
                     Id = p.Id,
                     Name = p.Name,
                     Address = p.Address,
-                    AssetCount = p.Assets.Count
+                    Type = p.Type,
+                    Status = p.Status,
+                    AssetCount = p.Assets.Count,
+                    Assets = p.Assets.Select(a => new AssetSummaryResponse 
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        Status = a.Status.ToString() // Convert the Enum to a string for the frontend
+                    }).ToList()
                 })
                 .ToListAsync();
 
@@ -158,8 +169,11 @@ public class PropertyManagementService : IPropertyManagement
             {
                 Id = property.Id,
                 Name = property.Name,
+                Type = property.Type,
                 Address = property.Address,
+                Status = property.Status,
                 AssetCount = property.Assets.Count,
+                DateCreated = property.CreatedAt,
                 Assets = property.Assets.Select(a => new AssetSummaryResponse
                 {
                     Id = a.Id,
@@ -182,7 +196,7 @@ public class PropertyManagementService : IPropertyManagement
 
         try
         {
-            var property = await _db.Property.FirstOrDefaultAsync(p => p.Id == propertyId);
+            var property = await _db.Property.Include(p => p.Assets).FirstOrDefaultAsync(p => p.Id == propertyId);
 
             if (property == null)
             {
@@ -198,6 +212,7 @@ public class PropertyManagementService : IPropertyManagement
                 return response;
             }
 
+            _db.Asset.RemoveRange(property.Assets);
             _db.Property.Remove(property);
             await _db.SaveChangesAsync();
 

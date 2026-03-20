@@ -29,7 +29,7 @@ public class PropertyController : ControllerBase
         return Ok(response);
     }
     
-    [HttpPost("{id:guid}")]
+    [HttpPut("{id:guid}")]
     public async Task<IActionResult> EditProperty(Guid id, [FromBody] PropertyRequest request)
     {
         var userId = GetUserId();
